@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(CalculatorApp());
+}
+
+class CalculatorApp extends StatefulWidget {
+  @override
+  _CalculatorAppState createState() => _CalculatorAppState();
+}
+
+class _CalculatorAppState extends State<CalculatorApp> {
+  bool isDarkMode = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: CalculatorScreen(
+        isDarkMode: isDarkMode,
+        toggleTheme: () {
+          setState(() {
+            isDarkMode = !isDarkMode;
+          });
+        },
+      ),
+    );
+  }
+}
+
+class CalculatorScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final VoidCallback toggleTheme;
+
+  CalculatorScreen({required this.isDarkMode, required this.toggleTheme});
+
+  @override
+  _CalculatorScreenState createState() => _CalculatorScreenState();
+}
+
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String output = "0";
+  String currentInput = "";
+  double num1 = 0;
+  String operator = "";
+
+  // 🔹 Format number (remove .00)
+  String formatNumber(String value) {
+    double num = double.parse(value);
+    if (num % 1 == 0) {
+      return num.toInt().toString();
+    }
+    return num.toString();
+  }
+
+  void buttonPressed(String text) {
+    setState(() {
+      if (text == "C") {
+        output = "0";
+        currentInput = "";
+        num1 = 0;
+        operator = "";
+      } else if (["+", "-", "×", "÷"].contains(text)) {
+        num1 = double.parse(output);
+        operator = text;
+        currentInput = "";
+      } else if (text == "=") {
+        double num2 = double.parse(currentInput);
+
+        double result = 0;
+        if (operator == "+") result = num1 + num2;
+        if (operator == "-") result = num1 - num2;
+        if (operator == "×") result = num1 * num2;
+        if (operator == "÷") result = num1 / num2;
+
+        output = formatNumber(result.toString());
+        currentInput = output;
+        operator = "";
+      } else {
+        currentInput += text;
+        output = currentInput;
+      }
+    });
+  }
+
+  // 🔹 Professional Button
+  Widget buildButton(String text) {
+    bool isOperator = ["+", "-", "×", "÷", "="].contains(text);
+
+    Color bgColor = widget.isDarkMode
+        ? (isOperator ? Colors.orange : Colors.grey[850]!)
+        : (isOperator ? Colors.orange : Colors.white);
+
+    Color textColor = isOperator
+        ? Colors.white
+        : (widget.isDarkMode ? Colors.white : Colors.black);
+
+    if (text == "C") {
+      bgColor = Colors.red;
+      textColor = Colors.white;
+    }
+
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => buttonPressed(text),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  offset: Offset(2, 3),
+                )
+              ],
+            ),
+            child: Container(
+              height: 70,
+              alignment: Alignment.center,
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor:
+          widget.isDarkMode ? Colors.black : Colors.grey[200],
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 🔹 Display
+            Container(
+              width: double.infinity,
+              margin: EdgeInsets.all(16),
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: widget.isDarkMode
+                    ? Colors.grey[900]
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                  )
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: widget.toggleTheme,
+                    icon: Icon(widget.isDarkMode
+                        ? Icons.light_mode
+                        : Icons.dark_mode),
+                  ),
+                  Text(
+                    output,
+                    style: TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode
+                          ? Colors.greenAccent
+                          : Colors.blueAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 🔹 Buttons
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  children: [
+                    Row(children: [
+                      buildButton("7"),
+                      buildButton("8"),
+                      buildButton("9"),
+                      buildButton("÷"),
+                    ]),
+                    Row(children: [
+                      buildButton("4"),
+                      buildButton("5"),
+                      buildButton("6"),
+                      buildButton("×"),
+                    ]),
+                    Row(children: [
+                      buildButton("1"),
+                      buildButton("2"),
+                      buildButton("3"),
+                      buildButton("-"),
+                    ]),
+                    Row(children: [
+                      buildButton("0"),
+                      buildButton("."),
+                      buildButton("C"),
+                      buildButton("+"),
+                    ]),
+                    Row(children: [
+                      buildButton("="),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
